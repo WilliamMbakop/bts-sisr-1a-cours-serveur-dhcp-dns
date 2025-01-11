@@ -64,7 +64,11 @@ Ces interfaces permettent à VMware de simuler différents types de réseaux pou
 
 ### Installation
 
-- [Ubuntu 22.04.05](https://releases.ubuntu.com/jammy/ubuntu-22.04.5-desktop-amd64.iso)
+Pour la création de la machine virtuelle, se référer à la documentation suivante :
+- [Création Machine virtuelle](https://github.com/WilliamMbakop/bts-sisr-installation-machine-virtuelle-vmware-worsktation-pro-17/blob/master/creation_machine_virtuelle.md)
+
+Les caractéristiques de la VM srvub22 sont les suivantes :
+- [ISO Ubuntu 22.04.05](https://releases.ubuntu.com/jammy/ubuntu-22.04.5-desktop-amd64.iso)
 - Ram 4 Go
 - Network adaptator1 : NAT (VMNet8)
 - Network adaptator2 : VMnet1
@@ -73,6 +77,14 @@ Ces interfaces permettent à VMware de simuler différents types de réseaux pou
 ### Mise à jour et mise à niveau
 
 ```bash
+# Passer en mode superutilisateur (root) en utilisant les privilèges de l'utilisateur courant
+sudo su
+
+# Ouvrir le terminal
+ctrl + alt + t
+
+# Se mettre 
+
 # Créer un fichier vide nommé script.sh
 touch script.sh
 
@@ -81,62 +93,71 @@ chmod 777 script.sh
 
 # Ouvrir le fichier script.sh dans l'éditeur de texte nano
 nano script.sh
+``` 
 
+Renseigner les lignes ci-dessous dans le fichier :
 
-    # Mettre à jour la liste des paquets disponibles à partir des sources configurées
-    apt update -y
+```bash
+# Mettre à jour la liste des paquets disponibles à partir des sources configurées
+apt update -y
 
-    # Effectuer une mise à niveau de distribution, incluant des mises à jour de paquets et des changements de dépendances
-    apt dist-upgrade -y
+# Effectuer une mise à niveau de distribution, incluant des mises à jour de paquets et des changements de dépendances
+apt dist-upgrade -y
 
-    # Installer le programme "tasksel" qui permet d'installer des tâches prédéfinies pour une configuration plus facile
-    apt install tasksel -y
+# Installer le programme "tasksel" qui permet d'installer des tâches prédéfinies pour une configuration plus facile
+apt install tasksel -y
 
-    # Installer le serveur SSH, permettant l'accès à distance sécurisé via SSH
-    apt install openssh-server -y
+# Installer le serveur SSH, permettant l'accès à distance sécurisé via SSH
+apt install openssh-server -y
 
-    # Installer les outils Open VM Tools, nécessaires pour les machines virtuelles VMware
-    apt install open-vm-tools -y
+# Installer les outils Open VM Tools, nécessaires pour les machines virtuelles VMware
+apt install open-vm-tools -y
 
-    # Installer le serveur web Apache2
-    apt install apache2 -y
+# Installer le serveur web Apache2
+apt install apache2 -y
 
-    # Installer le langage de programmation PHP
-    apt install php -y
+# Installer le langage de programmation PHP
+apt install php -y
 
-    # Installer le module PHP pour MySQL, permettant l'interaction entre PHP et MySQL
-    apt install php-mysql -y
+# Installer le module PHP pour MySQL, permettant l'interaction entre PHP et MySQL
+apt install php-mysql -y
 
-    # Installer PHP en ligne de commande (CLI), permettant l'exécution de scripts PHP depuis le terminal
-    apt install php-cli -y
+# Installer PHP en ligne de commande (CLI), permettant l'exécution de scripts PHP depuis le terminal
+apt install php-cli -y
 
-    # Installer le serveur de base de données MySQL
-    apt install mysql-server -y
+# Installer le serveur de base de données MySQL
+apt install mysql-server -y
 
-    # Installer phpMyAdmin pour gérer MySQL via une interface web
-    apt install phpmyadmin -y
+# Installer phpMyAdmin pour gérer MySQL via une interface web
+apt install phpmyadmin -y
 
-    # Installer le serveur DNS BIND9
-    apt install bind9 -y && apt install bind9utils -y && apt install bind9-doc -y
+# Installer le serveur DNS BIND9
+apt install bind9 -y && apt install bind9utils -y && apt install bind9-doc -y
 
-    # Installer dnsutils 
-    # dnsutils contient plusieurs outils utiles pour diagnostiquer et interagir avec les systèmes de noms de domaine (DNS).
-    # les outils sont dig, nslookup, dnsdomainname
+# Installer dnsutils 
+# dnsutils contient plusieurs outils utiles pour diagnostiquer et interagir avec les systèmes de noms de domaine (DNS).
+# les outils sont dig, nslookup, dnsdomainname
 
-    apt install dnsutils -y
+apt install dnsutils -y
 
-    # Installe le service de partage de fichiers Samba
-    apt install samba -y
+# Installe le service de partage de fichiers Samba
+apt install samba -y
 
-    # Installer le serveur DHCP ISC, qui attribue des adresses IP aux clients du réseau
-    apt install isc-dhcp-server -y
+# Installer le serveur DHCP ISC, qui attribue des adresses IP aux clients du réseau
+apt install isc-dhcp-server -y
 
-    # Installer le programme "tree" pour afficher les répertoires sous forme d'arborescence
-    apt install tree -y
+# Installer le programme "tree" pour afficher les répertoires sous forme d'arborescence
+apt install tree -y
+```
 
+```bash
 
+# Enregistrer et fermer le fichier
+ctrl + o
+entrée
+ctrl + x
 
-# Exécute le script script.sh
+# Exécuter le script script.sh
 ./script.sh
 ```
 
@@ -146,50 +167,82 @@ NB : À partir de la version Ubuntu 17.10 (Artful Aardvark), la configuration r�
 
 Netplan simplifie la configuration réseau en utilisant des fichiers YAML pour définir les interfaces réseau et leurs paramètres.
 
+
 ```bash
-# Ouvrir le fichier /etc/netplan/01-network-manager-all.yaml
-sudo nano /etc/netplan/01-network-manager-all.yaml
-
-    network:
-    version: 2
-    renderer: NetworkManager
-    ethernets:
-        ens33:
-        dhcp4: true
-        optional: true
-        ens37:
-        dhcp4: false
-        addresses:
-            - 172.16.10.254/24
-        nameservers:
-            addresses:
-            - 172.16.10.254
-            search:
-            - epreuve.lan
-
-# NB: Renseigner "search" permet à tous les clients du réseau local d’utiliser automatiquement le domaine epreuve.lan lorsqu'ils résolvent des noms de domaine. Ainsi, par exemple les machines du réseau peuvent résoudre des noms de type srvub22 en srvub22.epreuve.lan  ou club22 en club22.epreuve.lan sans avoir besoin de spécifier le domaine complet. 
-
-# Changer les permissions du fichier de configuration réseau pour qu'il soit lisible et modifiable uniquement par le propriétaire
-sudo chmod 600 /etc/netplan/01-network-manager-all.yaml
-
-# Appliquer les configurations réseau définies dans les fichiers de configuration Netplan
-sudo netplan apply
-
 # Afficher les informations sur les interfaces réseau et leurs adresses IP
 ip a
 ```
 
 ![Architecture DHCP DNS](images/img3.png)
 
+```bash
+# Ouvrir le fichier /etc/netplan/01-network-manager-all.yaml
+sudo nano /etc/netplan/01-network-manager-all.yaml
+```
+
+```bash
+# Renseigner le code suivant. Attention à l'identifiant de la seconde carte réseau :
+network:
+    version: 2
+    renderer: NetworkManager
+    ethernets:
+        ens33:
+            dhcp4: true
+            optional: true
+        ens34:
+            dhcp4: false
+            addresses:
+                - 172.16.10.254/24
+            nameservers:
+                addresses:
+                    - 172.16.10.254
+                search:
+                    - epreuve.lan
+
+```
+
+NB: Renseigner "search" permet à tous les clients du réseau local d’utiliser automatiquement le domaine epreuve.lan lorsqu'ils résolvent des noms de domaine. Ainsi, par exemple les machines du réseau peuvent résoudre des noms de type srvub22 en srvub22.epreuve.lan  ou club22 en club22.epreuve.lan sans avoir besoin de spécifier le domaine complet. 
+
+```bash
+# Changer les permissions du fichier de configuration réseau pour qu'il soit lisible et modifiable uniquement par le propriétaire
+sudo chmod 600 /etc/netplan/01-network-manager-all.yaml
+
+# Appliquer les configurations réseau définies dans les fichiers de configuration Netplan
+sudo netplan apply
+
+# Observer les changements effectués 
+ip a
+```
+
+![Architecture DHCP DNS](images/img3-1.png)
+
 ### Configuration de la résolution locale des noms d'hôte en adresses IP 
 
 ```bash
 # Ouvrir le fichier /etc/hosts 
 nano /etc/hosts
+```
 
+Ajouter ces lignes
+
+```bash
+127.0.0.1       localhost
+172.16.10.254   srvub22.epreuve.lan     srvub22
+172.16.10.3     club22.epreuve.lan      club22
+172.16.10.6     clwin10.epreuve.lan     clwin10 
+172.16.10.10    club22bis.epreuve.lan   club22bis
+8.8.8.8         www.google.fr
+8.8.4.4         www.google.fr
+```
+```bash
 # Redémarrer le service NetworkManager pour appliquer les changements de configuration réseau
 systemctl restart NetworkManager
 ```
+
+Si on se pingue par exemple, on voit que ca fonctionne :
+
+![Architecture DHCP DNS](images/img3-2.png)
+
 ### Activation du Forwarding et de la translation d'adresses (NAT)
 
 ```bash
@@ -224,39 +277,52 @@ sudo apt install iptables-persistent -y
 ```bash
 # Ouvrir le fichier de configuration DHCP dans l'éditeur de texte nano
 sudo nano /etc/dhcp/dhcpd.conf
-
-    # Modifier :
-    option domain-name "epreuve.lan";
-    option domain-name-servers srvub22.epreuve.lan;
-
-    # Décommenter : 
-    authorithative
-
-    # Modifier :
-    ddns-update-style interim;
-
-    # Ajouter :
-    ignore client-updates;
-
-    # Ajouter :
-    subnet 172.16.10.0 netmask 255.255.255.0 {
-        range 172.16.10.3 172.16.10.9;
-        option routers 172.16.10.254;
-        option broadcast-address 172.16.10.255;
-        default-lease-time 86400;
-        max-lease-time 604800;
-
-        # Mise à jour automatique DNS pour les clients
-        ddns-updates on;
-        update-static-leases on;
-    }
-
-    # Attribution d'une IP statique à l'adresse MAC spécifique qui correspond à club22bis
-    host club22bis {
-        hardware ethernet 00:0c:29:6e:bf:14;
-        fixed-address 172.16.10.10;
-    }
 ```
+
+Modifier :
+
+```bash
+option domain-name "epreuve.lan";
+option domain-name-servers srvub22.epreuve.lan;
+
+default-lease-time 86400;
+max-lease-time 604800;
+
+```
+
+Modifier :
+
+```bash
+    ddns-update-style interim;
+```
+
+Décommenter :
+
+```bash
+authorithative
+```
+
+Ajouter :
+
+```bash
+subnet 172.16.10.0 netmask 255.255.255.0 {
+    deny client-updates;
+    one-lease-per-client on;
+    option routers 172.16.10.254;
+    option broadcast-address 172.16.10.255;
+
+    pool {
+        deny dynamic bootp clients;
+        host club22 { hardware ethernet 00:0c:29:6e:bf:14; fixed-address 172.16.10.10;}
+        range 172.16.10.3 172.16.10.9;
+    }
+
+    # Mise à jour automatique DNS pour les clients
+    ddns-updates on;
+    update-static-leases on;
+}
+```
+
 #### Configuration de l'interface réseau à écouter
 
 ```bash
@@ -264,14 +330,21 @@ sudo nano /etc/dhcp/dhcpd.conf
 sudo nano /etc/default/isc-dhcp-server
 
     # Modifier : 
-    INTERFACESv4="ens37"
+    INTERFACESv4="ens34"
 
-    # Modifier : 
+    # Supprimer : 
     INTERFACESv6=""
 
 # Redémarrer le service DHCP ISC pour appliquer les nouvelles configurations et vérifier son statut
 sudo systemctl restart isc-dhcp-server && sudo systemctl status isc-dhcp-server
+
+# En cas de présente d'erreur pour analyser l'erreur :
+cat /var/log/syslog | grep dhcpd 
+# ou
+cat /var/log/syslog | grep 50622
 ```
+
+
 ### Configuration du serveur DNS (bind9)
 
 #### Définition des zones DNS
@@ -281,20 +354,22 @@ Les zones DNS servent à organiser et gérer la correspondance entre les noms de
 
 ```bash
 # Ouvrir le fichier de configuration local de BIND : /etc/bind/named.conf.local. Il sert à définir les zones DNS locales et à configurer des fichiers de zone spécifiques pour un serveur DNS Bind9, permettant ainsi la gestion des domaines et de leurs enregistrements. 
-
 sudo nano /etc/bind/named.conf.local
+```
+Ajouter ces lignes :
 
-    zone "epreuve.lan" {
-        type master;
-        file "/etc/bind/db.epreuve.lan";
-        allow-update { any; };
-    };
+```bash
+zone "epreuve.lan" {
+    type master;
+    file "/etc/bind/db.epreuve.lan";
+    allow-update { any; };
+};
 
-    zone "10.16.172.in-addr.arpa" {
-        type master;
-        file "/etc/bind/rev.epreuve.lan";
-        allow-update { any; };
-    };
+zone "10.16.172.in-addr.arpa" {
+    type master;
+    file "/etc/bind/rev.epreuve.lan";
+    allow-update { any; };
+};
 
 # NB : allow-update { any; }; permet d'autoriser n'importe quel client à effectuer des mises à jour dynamiques des enregistrements DNS sur le serveur.
 ```
@@ -306,22 +381,24 @@ La zone directe permet de résoudre un nom de domaine en adresse IP (par exemple
 # Ouvrir le fichier de zone DNS pour epreuve.lan 
 sudo nano /etc/bind/db.epreuve.lan
 
-    $TTL    604800
-    @       IN      SOA     srvub22.epreuve.lan. root.epreuve.lan. (
-                        2024010101 ; Serial
-                        604800     ; Refresh
-                        86400      ; Retry
-                        2419200    ; Expire
-                        604800 )   ; Negative Cache TTL
+# Ajouter le code ci-dessous : 
 
-            IN      NS      srvub22.epreuve.lan.
-            IN      A       172.16.10.254
-    www     IN      A       172.16.10.254
+$TTL    604800
+@       IN      SOA     srvub22.epreuve.lan. root.epreuve.lan. (
+                        2025011161 ; Serial
+                        1W         ; Refresh
+                        1d         ; Retry
+                        4W         ; Expire
+                        1W )       ; Negative Cache TTL
 
-    srvub22  IN      A       172.16.10.254
-    club22   IN      A       172.16.10.3
-    club22bis IN     A       172.16.10.10
-    clwin10   IN     A      172.16.10.5
+        IN      NS      srvub22.epreuve.lan.
+        IN      A       172.16.10.254
+www     IN      A       172.16.10.254
+
+srvub22  IN      A       172.16.10.254
+club22   IN      A       172.16.10.3
+club22bis IN     A       172.16.10.10
+clwin10  IN      A       172.16.10.5
 ```
 
 #### Création de la zone inversée
@@ -332,23 +409,24 @@ La zone inversée permet de résoudre une adresse IP en son nom de domaine assoc
 # Ouvrir le fichier de zone inversée DNS pour epreuve.lan
 sudo nano /etc/bind/rev.epreuve.lan
 
-        $TTL    604800
-    @       IN      SOA     srvub22.epreuve.lan. root.epreuve.lan. (
-                        2024010101 ; Serial
-                        604800     ; Refresh
-                        86400      ; Retry
-                        2419200    ; Expire
-                        604800 )   ; Negative Cache TTL
+# Ajouter le code ci-dessous : 
 
-            IN      NS      srvub22.epreuve.lan.
+$TTL    604800
+@       IN      SOA     srvub22.epreuve.lan. root.epreuve.lan. (
+                        2025011161 ; Serial
+                        1W         ; Refresh
+                        1d         ; Retry
+                        4W         ; Expire
+                        1W )       ; Negative Cache TTL
 
-    srvub22  IN      A       172.16.10.254
+        IN      NS      srvub22.epreuve.lan.
 
-    254     IN      PTR     srvub22.epreuve.lan.
-    3       IN      PTR     club22.epreuve.lan.
-    10      IN      PTR     club22bis.epreuve.lan.
-    5       IN      PTR     clwin10.epreuve.lan.
+srvub22 IN      A       172.16.10.254
 
+254     IN      PTR     srvub22.epreuve.lan.
+3       IN      PTR     club22.epreuve.lan.
+10      IN      PTR     club22bis.epreuve.lan.
+5       IN      PTR     clwin10.epreuve.lan.
 ```
 
 
