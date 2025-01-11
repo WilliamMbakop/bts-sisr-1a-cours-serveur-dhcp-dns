@@ -77,13 +77,11 @@ Les caractéristiques de la VM srvub22 sont les suivantes :
 ### Mise à jour et mise à niveau
 
 ```bash
-# Passer en mode superutilisateur (root) en utilisant les privilèges de l'utilisateur courant
-sudo su
-
 # Ouvrir le terminal
 ctrl + alt + t
 
-# Se mettre 
+# Passer en mode superutilisateur (root) en utilisant les privilèges de l'utilisateur courant
+sudo su
 
 # Créer un fichier vide nommé script.sh
 touch script.sh
@@ -151,7 +149,6 @@ apt install tree -y
 ```
 
 ```bash
-
 # Enregistrer et fermer le fichier
 ctrl + o
 entrée
@@ -198,7 +195,6 @@ network:
                     - 172.16.10.254
                 search:
                     - epreuve.lan
-
 ```
 
 NB: Renseigner "search" permet à tous les clients du réseau local d’utiliser automatiquement le domaine epreuve.lan lorsqu'ils résolvent des noms de domaine. Ainsi, par exemple les machines du réseau peuvent résoudre des noms de type srvub22 en srvub22.epreuve.lan  ou club22 en club22.epreuve.lan sans avoir besoin de spécifier le domaine complet. 
