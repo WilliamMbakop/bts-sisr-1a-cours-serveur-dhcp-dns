@@ -47,4 +47,14 @@ Le processus de résolution DNS suit plusieurs étapes :
 
 ### Ports
 - **Port 53/UDP** : Utilisé pour la plupart des requêtes DNS.
-- **Port 53/TCP** : Utilisé pour les requêtes DNS nécessitant une réponse plus longue ou pour les transferts de zone DNS.                              |
+- **Port 53/TCP** : Utilisé pour les requêtes DNS nécessitant une réponse plus longue ou pour les transferts de zone DNS.
+
+## Lexique
+
+### Fully Qualified Domain Name (FQDN)
+
+Un Fully Qualified Domain Name (FQDN), ou nom de domaine pleinement qualifié, est un nom de domaine qui spécifie son emplacement exact dans la hiérarchie du Domain Name System (DNS). Il comprend tous les niveaux de domaine, y compris le domaine racine, et se termine par un point (.) qui représente le domaine racine. Un FQDN est composé de plusieurs parties :
+
+Nom d'hôte : Le nom de la machine ou du service, par exemple srvub22.
+Domaine : Le domaine auquel appartient l'hôte, par exemple epreuve.lan.
+Domaine de premier niveau (TLD) : Le domaine de plus haut niveau, par exemple .lan.

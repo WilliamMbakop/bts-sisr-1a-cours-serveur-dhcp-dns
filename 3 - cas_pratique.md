@@ -5,8 +5,8 @@
 | Champ           | Détails                                      |
 |-----------------|----------------------------------------------|
 | **Auteur**      | William Mbakop                               |
-| **Date**        | 12 janvier 2025                               |
-| **Description** | Serveur DHCP & Serveur DNS - Cas pratique         |
+| **Date**        | 12 janvier 2025                              |
+| **Description** | Serveur DHCP & Serveur DNS - Cas pratique    |
 
 
 # Architecture
@@ -15,7 +15,7 @@ La VM serveur srvub22 fera office de serveur DHCP et DNS.
 
 Les VMs clientes club22 et clwin10 seront connectées au serveur DHCP pour obtenir une adresse ip automatique dans la plage d’adresse 172.16.10.3 à 172.16.10.9 (configurée dans le serveur DHCP). Elles obtiendront la résolution de nom (epreuve.lan) par le serveur DNS.
 
-La VM cliente club22bis sera connectée au serveur DHCP pour obtenir une adresse ip statique 172.10.16.10 (configurée dans le serveur DHCP). Elle obtiendra la résolution de nom (epreuve.lan) par le serveur DNS.
+La VM cliente club22bis sera connectée au serveur DHCP pour obtenir une adresse ip statique 172.16.10.10 (configurée dans le serveur DHCP). Elle obtiendra la résolution de nom (epreuve.lan) par le serveur DNS.
 
 ![Architecture DHCP DNS](images/img1.png)
 
@@ -224,6 +224,8 @@ default-lease-time 86400;
 max-lease-time 604800;
 ```
 
+Commenter :
+
 ```bash
 #ddns-update-style none;
 ```
@@ -284,6 +286,9 @@ sudo systemctl status isc-dhcp-server
 
 ```bash
 sudo systemctl restart NetworkManager
+```
+
+```bash
 ip a
 ```
 
@@ -298,12 +303,13 @@ ipconfig /renew
 
 # Configuration de la résolution locale des noms d'hôte en adresses IP sur la VM serveur svrub22 
 
+Ouvrir le fichier /etc/hosts :
+
 ```bash
-# Ouvrir le fichier /etc/hosts 
 nano /etc/hosts
 ```
 
-Ajouter ces lignes
+Ajouter les noms d'hôtes
 
 ```bash
 127.0.0.1       localhost
@@ -321,6 +327,7 @@ systemctl restart NetworkManager
 ```
 
 Réaliser des tests
+
 ![Tests résolution locale noms d'hôtes](images/img6.png)
 ![Tests résolution locale noms d'hôtes](images/img7.png)
 
@@ -365,10 +372,12 @@ Appliquer les configurations réseau définies dans les fichiers de configuratio
 sudo netplan apply
 ```
 
-Ouvrir le fichier /etc/hosts 
+Modifier le fichier /etc/hosts 
 ```bash
 nano /etc/hosts
 ```
+
+Ajouter le nom de domaine pleinement qualifié (FQDN - Fully Qualified Domain Name).
 
 ```bash
 127.0.0.1       localhost
@@ -533,40 +542,41 @@ sudo systemctl restart bind9 && sudo systemctl status bind9
 ```
 
 #### Réalisation de tests
-```bash
-# Test du fichier /etc/bind/named.conf.local
 
+Test du fichier /etc/bind/named.conf.local :
+```bash
 named-checkconf
 ```
 ![Test named-checkconf](images/img8.png)
 
 *Comme on peut le constater, aucun message d'erreur s'affiche*
 
-```bash
-# Test du fichier /etc/bind/db.epreuve.lan
+Test du fichier /etc/bind/db.epreuve.lan :
 
+```bash
 named-checkzone -d epreuve.lan /etc/bind/db.epreuve.lan
 ```
 
 ![Test db.epreuve.lan](images/img9.png)
 
-```bash
-# Test du fichier /etc/bind/rev.epreuve.lan
+Test du fichier /etc/bind/rev.epreuve.lan :
 
+```bash
 named-checkzone -d epreuve.lan /etc/bind/rev.epreuve.lan
 ```
 
 ![Test rev.epreuve.lan](images/img10.png)
 
+Tests de requête DNS sur epreuve.lan :
 ```bash
-# Tests de requête DNS sur epreuve.lan et www.epreuve.lan
-
-dig @172.16.10.254 epreuve.lan 
-dig @172.16.10.254 www.epreuve.lan
+dig @172.16.10.254 epreuve.lan
 ```
-
 ![Test1 de requête DNS sur epreuve.lan	](images/img11.png)
 
+Tests de requête DNS sur www.epreuve.lan :
+```bash
+dig @172.16.10.254 www.epreuve.lan
+```
 ![Test2 de requête DNS sur www.epreuve.lan](images/img12.png)
 
 
@@ -607,47 +617,57 @@ Tout fonctionne comme on le souhaite.
 
 Il ne reste plus qu'à donner l'accès à Internet aux Vms clientes.
 
-En efft, pour le moment, elles n'ont pas accès à Internet.
+En effet, pour le moment, elles n'ont pas accès à Internet.
 
 Ex. sur une VM cliente, essayer de pinguer 8.8.8.8
 
 ![Test ping 8.8.8.8 KO](images/img19.png)
 
-Pour leur permettre d'accéder à Internet, nous allons configurer le forwarding et les regles ipTables sur la VM serveur srvub22 
+Pour leur permettre d'accéder à Internet, nous allons configurer le forwarding et les regles ipTables sur la VM serveur srvub22
 
-# Activation du Forwarding et de la translation d'adresses (NAT) sur srvub22
+# Configuration du routage sur srvub22
+
+## Activation du Forwarding et de la translation d'adresses (NAT) sur srvub22
+
+ Ouvrir le fichier /etc/sysctl.conf
 
 ```bash
-# Ouvrir le fichier /etc/sysctl.conf
 sudo nano /etc/sysctl.conf
+```
 
-    # Décommenter :
-    net.ipv4.ip_forward=1
+Décommenter :
 
-# NB : La commande net.ipv4.ip_forward=1 active le forwarding en permettant au système de transférer les paquets entre différentes interfaces réseau, ce qui est nécessaire pour le routage, et prépare le serveur à utiliser la translation d'adresses (NAT) en modifiant les adresses IP source des paquets pour permettre l'accès à Internet via une adresse publique. 
+```bash
+net.ipv4.ip_forward=1
+```
 
-# Recharger les paramètres de configuration du noyau à partir du fichier /etc/sysctl.conf
+NB : La commande net.ipv4.ip_forward=1 active le forwarding en permettant au système de transférer les paquets entre différentes interfaces réseau, ce qui est nécessaire pour le routage, et prépare le serveur à utiliser la translation d'adresses (NAT) en modifiant les adresses IP source des paquets pour permettre l'accès à Internet via une adresse publique. 
+
+Recharger les paramètres de configuration du noyau à partir du fichier /etc/sysctl.conf
+
+```bash
 sudo sysctl -p
 ```
 
 
-# Configuration du Masquage avec IPTABLES sur srvub22
+## Configuration du Masquage avec IPTABLES sur srvub22
+
+Ajouter une règle NAT pour masquer les adresses IP source des paquets sortants sur l'interface ens33. Cela assure que tout le trafic sortant de la VM cliente passe par l’interface ens33 du serveur et est correctement masqué. 
 
 ```bash
-# Ajouter une règle NAT pour masquer les adresses IP source des paquets sortants sur l'interface ens33. Cela assure que tout le trafic sortant de la VM cliente passe par l’interface ens33 du serveur et est correctement masqué. 
 sudo iptables -t nat -A POSTROUTING -o ens33 -j MASQUERADE
-
-# Installer le paquet iptables-persistent pour sauvegarder les règles iptables
-sudo apt install iptables-persistent -y
-
-# Répondre OUI aux deux questions
 ```
 
-Sun une VM cliente, essayer de pinguer de nouveau 8.8.8.8
+## Installation du paquet iptables-persistent pour sauvegarder les règles iptables
+
+```bash
+sudo apt install iptables-persistent -y
+```
+Répondre OUI aux deux questions
+
+## Réalisation de tests sur une VM cliente
+
+```bash
+ping 8.8.8.8
+```
 ![Test ping 8.8.8.8 KO](images/img20.png)
-
-
-
-
-
-
